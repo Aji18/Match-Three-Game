@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
 namespace MatchThree
@@ -14,8 +13,13 @@ namespace MatchThree
 	{
 		[SerializeField] private TileTypeAsset[] tileTypes;
 
-		[SerializeField] private Row[] rows;
+		// [SerializeField] private Row[] rows;
 
+		private Node[,] _nodes;
+		public const int RowCount = 8;
+		public const int ColumnCount = 8;
+		[SerializeField] private Node nodePrefab;
+		
 		[SerializeField] private AudioClip matchSound;
 
 		[SerializeField] private AudioSource audioSource;
@@ -26,7 +30,9 @@ namespace MatchThree
 
 		[SerializeField] private bool ensureNoStartingMatches;
 
-		private readonly List<Tile> _selection = new List<Tile>();
+		private readonly List<Node> _selection = new List<Node>();
+
+		private const int nodeSize = 100;
 
 		private bool _isSwapping;
 		private bool _isMatching;
@@ -38,48 +44,51 @@ namespace MatchThree
 		{
 			get
 			{
-				var width = rows.Max(row => row.tiles.Length);
-				var height = rows.Length;
+				
 
-				var data = new TileData[width, height];
+				var data = new TileData[RowCount, ColumnCount];
 
-				for (var y = 0; y < height; y++)
-					for (var x = 0; x < width; x++)
+				for (var y = 0; y < ColumnCount; y++)
+					for (var x = 0; x < RowCount; x++)
+					{
 						data[x, y] = GetTile(x, y).Data;
-
+					}
 				return data;
 			}
 		}
 
+		public Node a;
 		private void Start()
 		{
-			for (var y = 0; y < rows.Length; y++)
+			_nodes = new Node[RowCount, ColumnCount];
+			for (int x = 0; x < RowCount; x++)
 			{
-				for (var x = 0; x < rows.Max(row => row.tiles.Length); x++)
+				for (int y = 0; y < ColumnCount; y++)
 				{
-					var tile = GetTile(x, y);
-
-					tile.x = x;
-					tile.y = y;
-
-					tile.Type = tileTypes[Random.Range(0, tileTypes.Length)];
-
-					tile.button.onClick.AddListener(() => Select(tile));
+					_nodes[x, y] = Instantiate(nodePrefab, Vector3.zero, 
+						Quaternion.identity, transform);
+					_nodes[x, y].transform.localPosition = new Vector3((x * nodeSize) - (nodeSize * RowCount / 2), (y * nodeSize) -
+						(nodeSize * ColumnCount / 2), 0);
+					_nodes[x, y].x = x;
+					_nodes[x, y].y = y;
+					_nodes[x, y].Type = tileTypes[Random.Range(0, tileTypes.Length)];
+					_nodes[x,y].button.onClick.AddListener(() => Select(_nodes[x,y]));
 				}
 			}
+			
 
-			if (ensureNoStartingMatches) StartCoroutine(EnsureNoStartingMatches());
-
-			{
-				OnMatch += (type, count) => Debug.Log($"Matched {count}x {type.name}.");
-			}
+			// if (ensureNoStartingMatches) StartCoroutine(EnsureNoStartingMatches());
+			//
+			// {
+			// 	OnMatch += (type, count) => Debug.Log($"Matched {count}x {type.name}.");
+			// }
 		}
 
 		private void Update()
 		{
 			if (Input.GetKeyDown(KeyCode.Space))
 			{
-				var bestMove = TileDataMatrixUtility.FindBestMove(Matrix);
+				var bestMove = TileDataMatrix.FindBestMove(Matrix);
 
 				if (bestMove != null)
 				{
@@ -92,45 +101,43 @@ namespace MatchThree
 		private IEnumerator EnsureNoStartingMatches()
 		{
 			var wait = new WaitForEndOfFrame();
-
-			while (TileDataMatrixUtility.FindBestMatch(Matrix) != null)
+			while (TileDataMatrix.FindBestMatch(Matrix) != null)
 			{
 				Shuffle();
-
 				yield return wait;
 			}
 		}
 
-		private Tile GetTile(int x, int y) => rows[y].tiles[x];
+		private Node GetTile(int x, int y) => _nodes[x,y];
 
-		private Tile[] GetTiles(IList<TileData> tileData)
+		private Node[] GetTiles(IList<TileData> tileData)
 		{
 			var length = tileData.Count;
 
-			var tiles = new Tile[length];
+			var tiles = new Node[length];
 
 			for (var i = 0; i < length; i++) tiles[i] = GetTile(tileData[i].X, tileData[i].Y);
 
 			return tiles;
 		}
 
-		private async void Select(Tile tile)
+		private async void Select(Node node)
 		{
 			if (_isSwapping || _isMatching || _isShuffling) return;
 
-			if (!_selection.Contains(tile))
+			if (!_selection.Contains(node))
 			{
 				if (_selection.Count > 0)
 				{
-					if (Math.Abs(tile.x - _selection[0].x) == 1 && Math.Abs(tile.y - _selection[0].y) == 0 ||
-					    Math.Abs(tile.y - _selection[0].y) == 1 && Math.Abs(tile.x - _selection[0].x) == 0)
+					if (Math.Abs(node.x - _selection[0].x) == 1 && Math.Abs(node.y - _selection[0].y) == 0 ||
+					    Math.Abs(node.y - _selection[0].y) == 1 && Math.Abs(node.x - _selection[0].x) == 0)
 					{
-						_selection.Add(tile);
+						_selection.Add(node);
 					}
 				}
 				else
 				{
-					_selection.Add(tile);
+					_selection.Add(node);
 				}
 			}
 
@@ -142,7 +149,7 @@ namespace MatchThree
 
 			var matrix = Matrix;
 
-			while (TileDataMatrixUtility.FindBestMove(matrix) == null || TileDataMatrixUtility.FindBestMatch(matrix) != null)
+			while (TileDataMatrix.FindBestMove(matrix) == null || TileDataMatrix.FindBestMatch(matrix) != null)
 			{
 				Shuffle();
 
@@ -152,7 +159,7 @@ namespace MatchThree
 			_selection.Clear();
 		}
 
-		private async Task SwapAsync(Tile tile1, Tile tile2)
+		private async Task SwapAsync(Node tile1, Node tile2)
 		{
 			_isSwapping = true;
 
@@ -197,7 +204,7 @@ namespace MatchThree
 
 			_isMatching = true;
 
-			var match = TileDataMatrixUtility.FindBestMatch(Matrix);
+			var match = TileDataMatrix.FindBestMatch(Matrix);
 
 			while (match != null)
 			{
@@ -228,7 +235,7 @@ namespace MatchThree
 
 				OnMatch?.Invoke(Array.Find(tileTypes, tileType => tileType.id == match.TypeId), match.Tiles.Length);
 
-				match = TileDataMatrixUtility.FindBestMatch(Matrix);
+				match = TileDataMatrix.FindBestMatch(Matrix);
 			}
 
 			_isMatching = false;
@@ -240,9 +247,13 @@ namespace MatchThree
 		{
 			_isShuffling = true;
 
-			foreach (var row in rows)
-				foreach (var tile in row.tiles)
-					tile.Type = tileTypes[Random.Range(0, tileTypes.Length)];
+			for (int x = 0; x < RowCount; x++)
+			{
+				for (int y = 0; y < ColumnCount; y++)
+				{
+					_nodes[x, y].Type = tileTypes[Random.Range(0, tileTypes.Length)];
+				}
+			}
 
 			_isShuffling = false;
 		}

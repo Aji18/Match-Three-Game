@@ -95,7 +95,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4800894271322220268, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Name
-      value: Tile_New_1
+      value: Node_New_1
       objectReference: {fileID: 0}
     - target: {fileID: 4800894271322220269, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Pivot.x
@@ -208,7 +208,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4800894271322220268, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Name
-      value: Tile_New_3
+      value: Node_New_3
       objectReference: {fileID: 0}
     - target: {fileID: 4800894271322220269, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Pivot.x
@@ -321,7 +321,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4800894271322220268, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Name
-      value: Tile_New_4
+      value: Node_New_4
       objectReference: {fileID: 0}
     - target: {fileID: 4800894271322220269, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Pivot.x
@@ -434,7 +434,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4800894271322220268, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Name
-      value: Tile_New_2
+      value: Node_New_2
       objectReference: {fileID: 0}
     - target: {fileID: 4800894271322220269, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Pivot.x
@@ -547,7 +547,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4800894271322220268, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Name
-      value: Tile_New_5
+      value: Node_New_5
       objectReference: {fileID: 0}
     - target: {fileID: 4800894271322220269, guid: 8f97cda178bdad04fa976d7b5d900022, type: 3}
       propertyPath: m_Pivot.x
